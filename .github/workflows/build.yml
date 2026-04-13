@@ -6,7 +6,10 @@ on:
       - "v*"
 
 permissions:
-  contents: write   # needed to upload assets to GitHub Releases
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
