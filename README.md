@@ -2,61 +2,39 @@
 
 Clap twice → JARVIS speaks → your workspace opens automatically.
 
-Detects two consecutive claps via microphone and launches Claude Code, Cursor, and a YouTube song of your choice. Runs as a background app with a system tray icon on Linux, macOS, and Windows.
-
 ## Install
 
 ```bash
 pip install jarvis-launcher
-jarvis-launcher
 ```
 
-No system dependencies required on any platform.
-
-## Download binary (no Python needed)
-
-Grab the latest binary from [Releases](https://github.com/francogalfre/jarvis-launcher/releases).
-
-| Platform | File |
-|----------|------|
-| Linux    | `jarvis-launcher-linux` |
-| macOS    | `jarvis-launcher-macos` |
-| Windows  | `jarvis-launcher-windows.exe` |
-
 ## Usage
-
-### Start the app
 
 ```bash
 jarvis-launcher
 ```
 
-A green tray icon appears. The terminal shows mic levels in real-time:
+A tray icon appears. The terminal shows microphone levels in real-time:
 
 ```
-[████████░░░░░░░░░] 🔔🔔
+[████████░░░░░░░░] 👏👏
 ```
-
-- Green icon = listening
-- Yellow icon = sound detected
-- Red icon = triggered
-- Gray icon = paused
 
 Right-click the tray icon to pause/resume, open settings, or quit.
 
 ### CLI commands
 
 ```bash
-jarvis config          # Show current configuration
-jarvis set sensitivity 0.2  # Change a setting
-jarvis voices          # List available TTS voices
-jarvis open-settings   # Open config in editor
-jarvis test-mic        # Test microphone levels
+jarvis config              # Show current configuration
+jarvis set voice en-US-JennyNeural  # Change voice
+jarvis voices             # List popular TTS voices
+jarvis open-settings     # Open config in editor
+jarvis test-mic          # Test microphone
 ```
 
 ## Configuration
 
-Settings live in `~/.jarvis-launcher/config.json` (created on first run). Open it via the tray menu or edit directly:
+Settings are in `~/.jarvis-launcher/config.json`:
 
 ```json
 {
@@ -66,26 +44,32 @@ Settings live in `~/.jarvis-launcher/config.json` (created on first run). Open i
   "open_cursor": true,
   "open_youtube": true,
   "youtube_url": "https://www.youtube.com/watch?v=v2AC41dglnM",
-  "voice": "en-GB-RyanNeural"
+  "voice": "en-GB-RyanNeural",
+  "phrases": [
+    "Good morning, sir. I trust everything is satisfactory.",
+    "I am at your service, sir. All systems are online."
+  ]
 }
 ```
 
-**Sensitivity tuning:**
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `sensitivity` | Mic sensitivity (0.05-0.5) | 0.15 |
+| `required_claps` | Claps needed to trigger | 2 |
+| `voice` | Edge TTS voice | en-GB-RyanNeural |
+| `phrases` | Custom phrases | [defaults] |
 
-| Value | Environment |
-|-------|-------------|
-| `0.08` | Very quiet room |
-| `0.15` | Normal office (default) |
-| `0.25` | Noisy environment |
+**Environment sensitivity:**
 
-Changes take effect on the next clap trigger — no restart needed.
+| Value | Setting |
+|------|---------|
+| `0.08` | Quiet room |
+| `0.15` | Normal office |
+| `0.25` | Noisy room |
 
-## How it works
+## Download binary
 
-- Streams microphone audio in 1024-sample chunks at 44100 Hz
-- Each chunk is checked for clap signature: high RMS + energy concentrated in the 1–8 kHz band (>25% of total)
-- Adaptive threshold adjusts to background noise automatically
-- Two claps within 3 seconds trigger the launch sequence
+Download the latest binary from [Releases](https://github.com/francogalfre/jarvis-launcher/releases) - no Python needed.
 
 ## License
 

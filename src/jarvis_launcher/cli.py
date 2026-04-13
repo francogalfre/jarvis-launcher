@@ -9,27 +9,37 @@ from jarvis_launcher import config as cfg
 
 
 def _list_voices() -> None:
-    """List available Edge TTS voices."""
+    """List available Edge TTS voices - filtered to popular ones."""
     import asyncio
     import edge_tts
 
-    async def _get_voices():
-        voices = await edge_tts.list_voices()
-        # Group by language
-        by_lang: dict[str, list] = {}
+    # Most popular voices for each language
+    POPULAR_VOICES = {
+        "en-US": ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"],
+        "en-GB": ["en-GB-SoniaNeural", "en-GB-RyanNeural", "en-GB-AbbiNeural"],
+        "es-ES": ["es-ES-ElviraNeural", "es-ES-AlvaroNeural"],
+        "fr-FR": ["fr-FR-DeniseNeural", "fr-FR-HenriNeural"],
+        "de-DE": ["de-DE-KatjaNeural", "de-DE-ConradNeural"],
+        "it-IT": ["it-IT-ElsaNeural", "it-IT-DiegoNeural"],
+        "pt-BR": ["pt-BR-AntonioNeural", "pt-BR-FranciscaNeural"],
+        "ja-JP": ["ja-JP-NanamiNeural", "ja-JP-KeitaNeural"],
+        "ko-KR": ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"],
+        "zh-CN": ["zh-CN-XiaoxiaoNeural", "zh-CN-YunxiNeural"],
+        "ru-RU": ["ru-RU-SvetlanaNeural", "ru-RU-DmitriNeural"],
+        "nl-NL": ["nl-NL-ColetteNeural", "nl-NL-MaartenNeural"],
+        "pl-PL": ["pl-PL-AgnieszkaNeural", "pl-PL-MarekNeural"],
+        "sv-SE": ["sv-SE-HedvigNeural", "sv-SE-MattiasNeural"],
+    }
+
+    print("🎤 Popular Edge TTS Voices")
+    print("=" * 40)
+    print("Usage: jarvis set voice <voice-id>")
+    print()
+    
+    for lang, voices in POPULAR_VOICES.items():
+        print(f"{lang}:")
         for v in voices:
-            lang = v["Locale"]
-            if lang not in by_lang:
-                by_lang[lang] = []
-            by_lang[lang].append(v["ShortName"])
-
-        # Print organized by language
-        for lang in sorted(by_lang.keys()):
-            print(f"\n{lang}:")
-            for short_name in sorted(by_lang[lang]):
-                print(f"  {short_name}")
-
-    asyncio.run(_get_voices())
+            print(f"    {v}")
 
 
 def _show_config() -> None:

@@ -46,8 +46,28 @@ def open_cursor() -> None:
     elif sys.platform == "darwin":
         subprocess.Popen(["open", "-a", "Cursor"])
     else:
-        cursor = shutil.which("cursor") or "/usr/bin/cursor"
-        subprocess.Popen([cursor])
+        # Check for cursor in PATH or common locations
+        cursor_locations = [
+            shutil.which("cursor"),
+            "/usr/bin/cursor",
+            "/usr/local/bin/cursor",
+            "/opt/cursor/bin/cursor",
+            str(Path.home() / ".local" / "bin" / "cursor"),
+        ]
+        cursor_path = None
+        for path in cursor_locations:
+            if path and Path(path).exists():
+                cursor_path = path
+                break
+        
+        if cursor_path:
+            subprocess.Popen([cursor_path], start_new_session=True)
+        else:
+            # Try starting directly (may open from .desktop)
+            subprocess.Popen(["cursor"], start_new_session=True)
+
+
+from pathlib import Path
 
 
 def open_youtube(url: str) -> None:
