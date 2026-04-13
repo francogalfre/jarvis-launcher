@@ -142,22 +142,50 @@ class JarvisTray:
         # Update icon to show triggered state
         self._icon.icon = _create_icon(self._colors["triggered"])
         
-        self._config = cfg.load()
+        print("\n🔥 TRIGGERED!", flush=True)
+        
+        try:
+            self._config = cfg.load()
+            print(f"   Config loaded: voice={self._config['voice']}", flush=True)
+        except Exception as e:
+            print(f"   ❌ Config error: {e}", flush=True)
+            return
+        
         phrase = random.choice(JARVIS_PHRASES)
+        print(f"   JARVIS says: \"{phrase}\"", flush=True)
         
-        print(f"\n🔥 TRIGGERED! Detected {self._config['required_claps']} claps")
-        print(f"   JARVIS says: \"{phrase}\"")
+        try:
+            print("   🔊 Speaking...", flush=True)
+            tts.speak(phrase, self._config["voice"])
+            print("   ✅ Speech done", flush=True)
+        except Exception as e:
+            print(f"   ❌ TTS error: {e}", flush=True)
         
-        tts.speak(phrase, self._config["voice"])
+        if self._config.get("open_claude_code"):
+            try:
+                print("   💻 Opening Claude Code...", flush=True)
+                launcher.open_claude_code()
+                time.sleep(1)
+                print("   ✅ Claude Code opened", flush=True)
+            except Exception as e:
+                print(f"   ❌ Claude Code error: {e}", flush=True)
         
-        if self._config["open_claude_code"]:
-            launcher.open_claude_code()
-            time.sleep(1)
-        if self._config["open_cursor"]:
-            launcher.open_cursor()
-            time.sleep(2)
-        if self._config["open_youtube"]:
-            launcher.open_youtube(self._config["youtube_url"])
+        if self._config.get("open_cursor"):
+            try:
+                print("   📝 Opening Cursor...", flush=True)
+                launcher.open_cursor()
+                time.sleep(2)
+                print("   ✅ Cursor opened", flush=True)
+            except Exception as e:
+                print(f"   ❌ Cursor error: {e}", flush=True)
+        
+        if self._config.get("open_youtube"):
+            try:
+                print("   🌐 Opening YouTube...", flush=True)
+                launcher.open_youtube(self._config["youtube_url"])
+                print("   ✅ YouTube opened", flush=True)
+            except Exception as e:
+                print(f"   ❌ YouTube error: {e}", flush=True)
         
         # Reset icon to listening
         self._icon.icon = _create_icon(self._colors["listening"])

@@ -46,11 +46,20 @@ class ApplauseDetector:
         band_energy = np.sum(fft_mag[band_mask])
         return (band_energy / total_energy) > 0.25, rms
 
-    def _audio_callback(self, indata) -> None:
+    def _audio_callback(self, audio: np.ndarray) -> None:
+        """Process audio data. audio can be 1D or 2D."""
         if self._busy:
             return
-        audio = indata[:, 0].astype(np.float32)
+        
+        # Handle both 1D and 2D arrays
+        if audio.ndim == 2:
+            audio = audio[:, 0]
+        
+        audio = audio.astype(np.float32)
         detected, rms = self._is_clap(audio)
+        
+        # Debug: print audio level
+        # print(f"DEBUG: rms={rms:.3f}, detected={detected}")
         
         # Send audio level to callback (normalized 0-1)
         if self.on_audio_level:
@@ -85,41 +94,53 @@ class ApplauseDetector:
             self._busy = False
 
     def _record_loop(self) -> None:
-        import queue as q
         import miniaudio
+        import queue as q
 
-        audio_q: q.Queue = q.Queue(maxsize=20)
+        audio_q: q.Queue = q.Queue(maxsize=50)
 
-        def _gen():
-            chunk = yield  # prime: yields None, then receives bytearray chunks via send()
+        # Generator that receives audio chunks from miniaudio
+        def audio_gen():
             while self._running:
+                # Prime: yield None initially, then receive chunks via send()
+                chunk = yield
                 if chunk:
                     try:
                         audio_q.put_nowait(bytes(chunk))
                     except q.Full:
                         pass
-                chunk = yield
 
-        gen = _gen()
-        next(gen)  # prime before handing to miniaudio
+        gen = audio_gen()
+        next(gen)  # Prime the generator before passing to miniaudio
 
-        device = miniaudio.CaptureDevice(
-            input_format=miniaudio.SampleFormat.FLOAT32,
-            nchannels=1,
-            sample_rate=RATE,
-            buffersize_msec=int(CHUNK / RATE * 1000),
-        )
-        device.start(gen)
         try:
+            device = miniaudio.CaptureDevice(
+                input_format=miniaudio.SampleFormat.FLOAT32,
+                nchannels=1,
+                sample_rate=RATE,
+                buffersize_msec=50,
+            )
+            device.start(gen)
+            
             while self._running:
                 try:
-                    raw = audio_q.get(timeout=0.1)
+                    raw = audio_q.get(timeout=0.2)
                     arr = np.frombuffer(raw, dtype=np.float32).reshape(-1, 1)
                     self._audio_callback(arr)
                 except q.Empty:
+                    # Send empty signal to keep generator alive
+                    try:
+                        gen.send(None)
+                    except StopIteration:
+                        break
                     continue
+        except Exception as e:
+            print(f"❌ Microphone error: {e}")
         finally:
-            device.close()
+            try:
+                device.close()
+            except Exception:
+                pass
 
     def start(self) -> None:
         self._running = True
