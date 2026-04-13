@@ -189,7 +189,7 @@ class JarvisTray:
         
         # Print welcome message
         print("=" * 50)
-        print("🤖 JARVIS Launcher v1.0")
+        print("🤖 JARVIS Launcher v1.1.0")
         print("=" * 50)
         print()
         print("📋 Status:")
