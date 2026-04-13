@@ -251,7 +251,7 @@ class JarvisTray:
         print()
         print("🟢 Ready! Clap to activate...")
         print()
-        print("💡 CLI: jarvis config | jarvis set | jarvis voices")
+        print("💡 CLI: jarvis config | jarvis set | jarvis open-settings")
         print("-" * 50)
         
         # Start detector with callbacks
