@@ -84,4 +84,6 @@ class JarvisTray:
     def run(self) -> None:
         self._detector = ApplauseDetector(self._config, self._on_trigger)
         self._detector.start()
+        print("JARVIS Launcher is running. Clap twice to activate.")
+        print("Right-click the tray icon to pause, open settings, or quit.")
         self._icon.run()
