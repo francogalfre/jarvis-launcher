@@ -18,7 +18,8 @@ class ApplauseDetector:
         self._busy = False
         self.claps_detected = 0
         self.last_clap_time = 0.0
-        self._stream = None
+        self._running = False
+        self._thread = None
 
         noise_buf_size = int(RATE / CHUNK * NOISE_WINDOW_SECONDS)
         self.noise_buf: deque[float] = deque([0.01] * noise_buf_size, maxlen=noise_buf_size)
@@ -43,7 +44,7 @@ class ApplauseDetector:
         band_energy = np.sum(fft_mag[band_mask])
         return (band_energy / total_energy) > 0.25, rms
 
-    def _audio_callback(self, indata, frames, time_info, status) -> None:
+    def _audio_callback(self, indata) -> None:
         if self._busy:
             return
         audio = indata[:, 0].astype(np.float32)
@@ -71,19 +72,21 @@ class ApplauseDetector:
         finally:
             self._busy = False
 
+    def _record_loop(self) -> None:
+        import soundcard as sc
+        mic = sc.default_microphone()
+        with mic.recorder(samplerate=RATE, channels=1) as recorder:
+            while self._running:
+                data = recorder.record(numframes=CHUNK)
+                self._audio_callback(data)
+
     def start(self) -> None:
-        import sounddevice as sd
-        self._stream = sd.InputStream(
-            samplerate=RATE,
-            channels=1,
-            blocksize=CHUNK,
-            dtype="float32",
-            callback=self._audio_callback,
-        )
-        self._stream.start()
+        self._running = True
+        self._thread = threading.Thread(target=self._record_loop, daemon=True)
+        self._thread.start()
 
     def stop(self) -> None:
-        if self._stream is not None:
-            self._stream.stop()
-            self._stream.close()
-            self._stream = None
+        self._running = False
+        if self._thread is not None:
+            self._thread.join(timeout=2)
+            self._thread = None

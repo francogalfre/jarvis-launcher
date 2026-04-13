@@ -33,12 +33,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install system deps (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update -y && sudo apt-get install -y portaudio19-dev ffmpeg
-
       - name: Install Python deps
-        run: pip install pyinstaller sounddevice numpy scipy edge-tts pystray Pillow colorama
+        run: pip install pyinstaller soundcard miniaudio numpy scipy edge-tts pystray Pillow colorama
 
       - name: Install Windows extras
         if: runner.os == 'Windows'

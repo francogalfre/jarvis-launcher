@@ -10,7 +10,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
-    "sounddevice>=0.4.6",
+    "soundcard>=0.4.2",
+    "miniaudio>=1.59",
     "numpy>=1.21.0",
     "scipy>=1.7.0",
     "edge-tts>=6.1.0",

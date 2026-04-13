@@ -8,11 +8,6 @@ JARVIS Launcher listens for two consecutive claps via microphone and triggers a 
 
 ## Setup
 
-System deps (Linux only):
-```bash
-sudo apt install portaudio19-dev ffmpeg
-```
-
 Install (editable + dev tools):
 ```bash
 pip install -e ".[dev]"
@@ -43,13 +38,13 @@ Key fields: `sensitivity`, `noise_multiplier`, `required_claps`, `timeout_reset`
 src/jarvis_launcher/
 ├── main.py      # Entry point → JarvisTray.run()
 ├── tray.py      # pystray icon + menu; owns main thread
-├── detector.py  # ApplauseDetector: sounddevice callback → clap logic → on_trigger()
+├── detector.py  # ApplauseDetector: soundcard loop → clap logic → on_trigger()
 ├── launcher.py  # open_claude_code(), open_cursor(), open_youtube() — cross-platform
 ├── tts.py       # speak(): edge-tts primary, platform fallback (say/espeak-ng/pyttsx3)
 └── config.py    # load() / open_in_editor() — ~/.jarvis-launcher/config.json
 ```
 
-Thread model: tray icon runs on main thread (pystray requirement). Detector runs `sd.InputStream` in a sounddevice thread. On trigger, a daemon thread executes TTS + launcher so the audio callback returns immediately.
+Thread model: tray icon runs on main thread (pystray requirement). Detector runs a soundcard recording loop in a daemon thread. On trigger, a daemon thread executes TTS + launcher so the recording loop returns immediately.
 
 Config reloads on every trigger — changes to `config.json` take effect without restart.
 

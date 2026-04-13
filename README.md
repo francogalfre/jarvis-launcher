@@ -4,27 +4,24 @@ Clap twice → JARVIS speaks → your workspace opens automatically.
 
 Detects two consecutive claps via microphone and launches Claude Code, Cursor, and a YouTube song of your choice. Runs as a background app with a system tray icon on Linux, macOS, and Windows.
 
-## Download
+## Install
 
-Grab the latest binary from [Releases](https://github.com/francogalfre/jarvis-launcher/releases) — no Python required.
+```bash
+pip install jarvis-launcher
+jarvis-launcher
+```
+
+No system dependencies required on any platform.
+
+## Download binary (no Python needed)
+
+Grab the latest binary from [Releases](https://github.com/francogalfre/jarvis-launcher/releases).
 
 | Platform | File |
 |----------|------|
 | Linux    | `jarvis-launcher-linux` |
 | macOS    | `jarvis-launcher-macos` |
 | Windows  | `jarvis-launcher-windows.exe` |
-
-## Install from source
-
-**Linux system deps:**
-```bash
-sudo apt install portaudio19-dev ffmpeg
-```
-
-```bash
-pip install -e ".[dev]"
-jarvis-launcher
-```
 
 ## Usage
 
