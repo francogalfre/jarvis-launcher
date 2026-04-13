@@ -73,12 +73,38 @@ class ApplauseDetector:
             self._busy = False
 
     def _record_loop(self) -> None:
-        import soundcard as sc
-        mic = sc.default_microphone()
-        with mic.recorder(samplerate=RATE, channels=1) as recorder:
+        import queue as q
+        import miniaudio
+
+        audio_q: q.Queue = q.Queue(maxsize=20)
+
+        def _gen():
+            audio_bytes = yield b""  # prime
             while self._running:
-                data = recorder.record(numframes=CHUNK)
-                self._audio_callback(data)
+                if audio_bytes:
+                    try:
+                        audio_q.put_nowait(audio_bytes)
+                    except q.Full:
+                        pass
+                audio_bytes = yield b""
+
+        gen = _gen()
+        next(gen)  # prime before handing to miniaudio
+
+        with miniaudio.CaptureDevice(
+            input_format=miniaudio.SampleFormat.FLOAT32,
+            nchannels=1,
+            sample_rate=RATE,
+            buffersize_msec=int(CHUNK / RATE * 1000),
+            callback_generator=gen,
+        ):
+            while self._running:
+                try:
+                    raw = audio_q.get(timeout=0.1)
+                    data = np.frombuffer(raw, dtype=np.float32).reshape(-1, 1)
+                    self._audio_callback(data)
+                except q.Empty:
+                    continue
 
     def start(self) -> None:
         self._running = True

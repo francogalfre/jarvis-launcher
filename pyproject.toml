@@ -4,13 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jarvis-launcher"
-version = "1.0.1"
+version = "1.0.2"
 description = "Two claps → JARVIS speaks → launches your workspace"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
-    "soundcard>=0.4.2",
     "miniaudio>=1.59",
     "numpy>=1.21.0",
     "scipy>=1.7.0",
