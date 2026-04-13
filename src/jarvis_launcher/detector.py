@@ -79,32 +79,35 @@ class ApplauseDetector:
         audio_q: q.Queue = q.Queue(maxsize=20)
 
         def _gen():
-            audio_bytes = yield b""  # prime
+            chunk = yield  # prime: yields None, then receives bytearray chunks via send()
             while self._running:
-                if audio_bytes:
+                if chunk:
                     try:
-                        audio_q.put_nowait(audio_bytes)
+                        audio_q.put_nowait(bytes(chunk))
                     except q.Full:
                         pass
-                audio_bytes = yield b""
+                chunk = yield
 
         gen = _gen()
         next(gen)  # prime before handing to miniaudio
 
-        with miniaudio.CaptureDevice(
+        device = miniaudio.CaptureDevice(
             input_format=miniaudio.SampleFormat.FLOAT32,
             nchannels=1,
             sample_rate=RATE,
             buffersize_msec=int(CHUNK / RATE * 1000),
-            callback_generator=gen,
-        ):
+        )
+        device.start(gen)
+        try:
             while self._running:
                 try:
                     raw = audio_q.get(timeout=0.1)
-                    data = np.frombuffer(raw, dtype=np.float32).reshape(-1, 1)
-                    self._audio_callback(data)
+                    arr = np.frombuffer(raw, dtype=np.float32).reshape(-1, 1)
+                    self._audio_callback(arr)
                 except q.Empty:
                     continue
+        finally:
+            device.close()
 
     def start(self) -> None:
         self._running = True

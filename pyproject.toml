@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jarvis-launcher"
-version = "1.0.2"
+version = "1.0.3"
 description = "Two claps → JARVIS speaks → launches your workspace"
 readme = "README.md"
 requires-python = ">=3.10"
