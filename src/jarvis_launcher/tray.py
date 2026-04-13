@@ -36,7 +36,7 @@ class JarvisTray:
         self._icon = pystray.Icon(
             "jarvis-launcher",
             _create_icon(),
-            "JARVIS Launcher — Listening",
+            "JARVIS Launcher - Listening",
             menu=pystray.Menu(
                 pystray.MenuItem(
                     lambda _: "⏸ Pause" if not self._paused else "▶ Resume",
@@ -66,11 +66,11 @@ class JarvisTray:
         if self._paused:
             if self._detector:
                 self._detector.stop()
-            icon.title = "JARVIS Launcher — Paused"
+            icon.title = "JARVIS Launcher - Paused"
         else:
             if self._detector:
                 self._detector.start()
-            icon.title = "JARVIS Launcher — Listening"
+            icon.title = "JARVIS Launcher - Listening"
         icon.update_menu()
 
     def _open_settings(self, icon, item) -> None:
