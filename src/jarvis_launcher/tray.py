@@ -11,7 +11,8 @@ from . import launcher
 from . import tts
 from .detector import ApplauseDetector
 
-JARVIS_PHRASES = [
+# Default phrases (used if not configured)
+DEFAULT_PHRASES = [
     "Good morning, sir. I trust everything is satisfactory.",
     "I am at your service, sir. All systems are online.",
     "Initialising workspace. Shall I prepare the workshop, sir?",
@@ -20,6 +21,10 @@ JARVIS_PHRASES = [
     "Workspace initialised. I await your command, sir.",
     "I'm quite sure you'll find this rather interesting, sir.",
 ]
+
+
+def _get_phrases(config: dict) -> list:
+    return config.get("phrases", DEFAULT_PHRASES)
 
 
 def _create_icon(color: tuple[int, int, int, int] = (80, 200, 120, 255)) -> Image.Image:
@@ -110,24 +115,23 @@ class JarvisTray:
 
     def _update_status_line(self) -> None:
         """Continuously print mic level in terminal."""
-        indicator = get_mic_indicator()
         while self._running and not self._paused:
             # Show level from detector
             level = self._last_level
             bars = min(10, max(0, int(level * 20)))
             if bars == 0:
-                bars_str = "○ ○ ○ ○ ○ ○ ○ ○ ○ ○"
+                bars_str = "──────────"
             else:
-                filled = "●" * bars
-                empty = "○" * (10 - bars)
+                filled = "▓" * bars
+                empty = "░" * (10 - bars)
                 bars_str = f"{filled}{empty}"
             
-            claps = "🔔" * self._claps_count if self._claps_count else ""
+            claps = "👏" * self._claps_count if self._claps_count else ""
             print(f"\r[{bars_str}] {claps}", end="", flush=True)
             time.sleep(0.1)
         # Print paused state
         if self._paused:
-            print(f"\r[⏸ PAUSED]   Say 'pause' in config to resume")
+            print(f"\r[ ⏸ PAUSED ]")
 
     def _on_audio_level(self, level: float) -> None:
         """Update mic level indicator in console."""
@@ -151,8 +155,14 @@ class JarvisTray:
             print(f"   ❌ Config error: {e}", flush=True)
             return
         
-        phrase = random.choice(JARVIS_PHRASES)
+        phrase = random.choice(self._config.get("phrases", DEFAULT_PHRASES))
         print(f"   JARVIS says: \"{phrase}\"", flush=True)
+        
+        # Paused detector temporarily to avoid audio conflicts
+        was_running = False
+        if self._detector and self._detector._running:
+            self._detector.stop()
+            was_running = True
         
         try:
             print("   🔊 Speaking...", flush=True)
@@ -160,6 +170,9 @@ class JarvisTray:
             print("   ✅ Speech done", flush=True)
         except Exception as e:
             print(f"   ❌ TTS error: {e}", flush=True)
+        
+        if was_running:
+            self._detector.start()
         
         if self._config.get("open_claude_code"):
             try:
@@ -217,18 +230,28 @@ class JarvisTray:
         
         # Print welcome message
         print("=" * 50)
-        print("🤖 JARVIS Launcher v1.1.0")
+        print("🤖 JARVIS Launcher v1.2")
         print("=" * 50)
         print()
-        print("📋 Status:")
-        print(f"   • Sensitivity: {self._config['sensitivity']}")
-        print(f"   • Required claps: {self._config['required_claps']}")
-        print(f"   • Voice: {self._config['voice']}")
+        
+        # Show configured actions
+        actions = []
+        if self._config.get("open_claude_code"):
+            actions.append("Claude Code")
+        if self._config.get("open_cursor"):
+            actions.append("Cursor")
+        if self._config.get("open_youtube"):
+            actions.append("YouTube")
+        
+        print("📋 Config:")
+        print(f"   🎯 Claps: {self._config['required_claps']}")
+        print(f"   🎤 Sensitivity: {self._config['sensitivity']}")
+        print(f"   🔊 Voice: {self._config['voice']}")
+        print(f"   🚀 Opens: {', '.join(actions) if actions else 'none'}")
         print()
-        print("🟢 Listening for claps...")
-        print("   (clap twice to trigger)")
+        print("🟢 Ready! Clap to activate...")
         print()
-        print("💡 Tip: Right-click tray icon to pause or open settings")
+        print("💡 CLI: jarvis config | jarvis set | jarvis voices")
         print("-" * 50)
         
         # Start detector with callbacks

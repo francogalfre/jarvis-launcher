@@ -6,6 +6,16 @@ from pathlib import Path
 CONFIG_DIR = Path.home() / ".jarvis-launcher"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
+DEFAULT_PHRASES = [
+    "Good morning, sir. I trust everything is satisfactory.",
+    "I am at your service, sir. All systems are online.",
+    "Initialising workspace. Shall I prepare the workshop, sir?",
+    "All systems nominal. Standing by for your instructions.",
+    "A pleasure to assist you, sir. Let us begin.",
+    "Workspace initialised. I await your command, sir.",
+    "I'm quite sure you'll find this rather interesting, sir.",
+]
+
 DEFAULTS: dict = {
     "sensitivity": 0.15,
     "noise_multiplier": 3.0,
@@ -17,6 +27,7 @@ DEFAULTS: dict = {
     "open_cursor": True,
     "open_youtube": True,
     "voice": "en-GB-RyanNeural",
+    "phrases": DEFAULT_PHRASES,
 }
 
 
