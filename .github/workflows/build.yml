@@ -1,0 +1,54 @@
+name: Build Binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write   # needed to upload assets to GitHub Releases
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: jarvis-launcher-linux
+          - os: macos-latest
+            artifact: jarvis-launcher-macos
+          - os: windows-latest
+            artifact: jarvis-launcher-windows.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y portaudio19-dev ffmpeg
+
+      - name: Install Python deps
+        run: pip install pyinstaller sounddevice numpy scipy edge-tts pystray Pillow colorama
+
+      - name: Install Windows extras
+        if: runner.os == 'Windows'
+        run: pip install playsound pyttsx3
+
+      - name: Build binary
+        run: >
+          pyinstaller
+          --onefile
+          --name ${{ matrix.artifact }}
+          --hidden-import jarvis_launcher
+          src/jarvis_launcher/main.py
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact }}*
