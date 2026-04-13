@@ -35,11 +35,8 @@ def _play_audio(path: str) -> None:
     if sys.platform == "darwin":
         subprocess.run(["afplay", path], check=False)
     elif sys.platform == "win32":
-        try:
-            from playsound import playsound  # type: ignore
-            playsound(path)
-        except Exception:
-            pass
+        # playsound 1.3.0 is broken on Python 3.12 — raise so speak() falls back to pyttsx3
+        raise RuntimeError("ffplay not available; falling back to pyttsx3")
     else:
         subprocess.run(
             ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", path],
