@@ -25,6 +25,7 @@ dev = ["pytest>=7.0.0"]
 
 [project.scripts]
 jarvis-launcher = "jarvis_launcher.main:main"
+jarvis = "jarvis_launcher.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/jarvis_launcher"]

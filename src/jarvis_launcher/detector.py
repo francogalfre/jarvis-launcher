@@ -12,9 +12,11 @@ NOISE_WINDOW_SECONDS = 5
 
 
 class ApplauseDetector:
-    def __init__(self, config: dict, on_trigger) -> None:
+    def __init__(self, config: dict, on_trigger, on_audio_level=None, on_clap=None) -> None:
         self.config = config
         self.on_trigger = on_trigger
+        self.on_audio_level = on_audio_level  # callback(level: float)
+        self.on_clap = on_clap  # callback(count: int)
         self._busy = False
         self.claps_detected = 0
         self.last_clap_time = 0.0
@@ -48,13 +50,23 @@ class ApplauseDetector:
         if self._busy:
             return
         audio = indata[:, 0].astype(np.float32)
-        detected, _ = self._is_clap(audio)
+        detected, rms = self._is_clap(audio)
+        
+        # Send audio level to callback (normalized 0-1)
+        if self.on_audio_level:
+            threshold = self._adaptive_threshold()
+            normalized = min(1.0, rms / (threshold * 2))
+            self.on_audio_level(normalized)
+        
         if detected:
             now = time.time()
             min_gap = self.config["min_seconds_between_claps"]
             if now - self.last_clap_time > min_gap:
                 self.claps_detected += 1
                 self.last_clap_time = now
+                # Notify clap detection
+                if self.on_clap:
+                    self.on_clap(self.claps_detected)
                 if self.claps_detected >= self.config["required_claps"]:
                     self._busy = True
                     self.claps_detected = 0

@@ -25,11 +25,34 @@ Grab the latest binary from [Releases](https://github.com/francogalfre/jarvis-la
 
 ## Usage
 
-1. Run `jarvis-launcher` — a green tray icon appears
-2. Clap twice in front of your microphone
-3. JARVIS speaks, then opens Claude Code, Cursor, and YouTube
+### Start the app
+
+```bash
+jarvis-launcher
+```
+
+A green tray icon appears. The terminal shows mic levels in real-time:
+
+```
+[████████░░░░░░░░░] 🔔🔔
+```
+
+- Green icon = listening
+- Yellow icon = sound detected
+- Red icon = triggered
+- Gray icon = paused
 
 Right-click the tray icon to pause/resume, open settings, or quit.
+
+### CLI commands
+
+```bash
+jarvis config          # Show current configuration
+jarvis set sensitivity 0.2  # Change a setting
+jarvis voices          # List available TTS voices
+jarvis open-settings   # Open config in editor
+jarvis test-mic        # Test microphone levels
+```
 
 ## Configuration
 
